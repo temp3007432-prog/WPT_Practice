@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Tony Pro Arcade - Arrow Key Controls</title>
+    <style>
+        body { margin: 0; overflow: hidden; height: 100vh; font-family: 'Arial', sans-serif; transition: background 2s; }
+        .day { background: linear-gradient(to bottom, #2980B9 0%, #6DD5FA 100%); }
+        .night { background: linear-gradient(to bottom, #020111 0%, #191621 100%); }
+
+        .cloud-container { position: absolute; top: 0; width: 100%; height: 350px; z-index: 1; }
+        .cloud {
+            position: absolute; background: #fff; width: 120px; height: 40px;
+            border-radius: 50px; opacity: 0.8; animation: moveClouds linear infinite;
+        }
+        .cloud::after, .cloud::before { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+        .cloud::after { width: 60px; height: 60px; top: -30px; left: 15px; }
+        .cloud::before { width: 40px; height: 40px; top: -15px; right: 15px; }
+        @keyframes moveClouds { from { transform: translateX(110vw); } to { transform: translateX(-25vw); } }
+
+        #runway { 
+            height: 120px; width: 100%; background: #222; position: absolute; bottom: 0; z-index: 5; border-top: 8px solid #444;
+            background-image: linear-gradient(90deg, #555 50%, transparent 50%); background-size: 100px 6px;
+            background-repeat: repeat-x; background-position: center 40px;
+        }
+
+        #player { position: absolute; width: 180px; left: 60px; bottom: 110px; z-index: 10; transition: transform 0.1s; }
+        .ducking { transform: scaleY(0.5); transform-origin: bottom; }
+
+        .obstacle { position: absolute; z-index: 8; display: flex; align-items: flex-end; justify-content: center; }
+        .cone { background: #FF5722; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); width: 45px; height: 55px; }
+        .rock { background: #795548; border-radius: 50%; width: 60px; height: 40px; }
+        .bird { width: 50px; height: 30px; background: #FFD700; clip-path: polygon(0% 50%, 50% 0%, 100% 50%, 50% 100%); }
+
+        #ui { position: absolute; top: 20px; left: 20px; color: white; z-index: 20; text-shadow: 2px 2px 4px #000; }
+        .controls { position: fixed; bottom: 20px; left: 20px; z-index: 30; display: flex; gap: 10px; }
+        .btn { padding: 12px 24px; cursor: pointer; border-radius: 8px; font-weight: bold; background: white; border: 2px solid #000; }
+    </style>
+</head>
+<body class="day">
+
+    <div id="ui">
+        <div id="scoreBoard" style="font-size: 32px;">Score: 0</div>
+        <div id="highScore" style="font-size: 18px; opacity: 0.8;">High Score: 0</div>
+    </div>
+
+    <div class="cloud-container">
+        <div class="cloud" style="top: 20px; animation-duration: 20s;"></div>
+        <div class="cloud" style="top: 150px; animation-duration: 35s; transform: scale(0.6);"></div>
+        <div class="cloud" style="top: 80px; animation-duration: 28s; transform: scale(1.2);"></div>
+        <div class="cloud" style="top: 220px; animation-duration: 45s; transform: scale(0.8); opacity: 0.5;"></div>
+        <div class="cloud" style="top: 100px; animation-duration: 32s; transform: scale(0.5);"></div>
+    </div>
+    
+    <video id="player" autoplay loop muted playsinline>
+        <source src="5f4fajcy85rmy0cxtg68hp8mm8.webm" type="video/webm">
+    </video>
+    
+    <div id="runway"></div>
+
+    <div class="controls">
+        <button class="btn" id="startBtn" onclick="StartGame()">START</button>
+        <button class="btn" onmousedown="Jump()">JUMP (Up)</button>
+        <button class="btn" onmousedown="StartDuck()" onmouseup="EndDuck()">DUCK (Down)</button>
+    </div>
+
+<script>
+    var player = document.getElementById("player");
+    var runway = document.getElementById("runway");
+    var isJumping = false, isDucking = false, gameActive = false;
+    var score = 0, gameSpeed = 15, obstacles = [];
+    var gameTimer, spawnTimer;
+
+    var highScore = localStorage.getItem("tonyHighScore") || 0;
+    document.getElementById("highScore").innerHTML = "High Score: " + highScore;
+
+    function StartDuck() { if (gameActive && !isJumping) { isDucking = true; player.classList.add("ducking"); } }
+    function EndDuck() { isDucking = false; player.classList.remove("ducking"); }
+
+    // KEYBOARD LISTENERS
+    document.addEventListener("keydown", (e) => { 
+        if(e.code === "Space" || e.code === "ArrowUp") Jump(); 
+        if(e.code === "ArrowDown") StartDuck();
+    });
+    document.addEventListener("keyup", (e) => { 
+        if(e.code === "ArrowDown") EndDuck(); 
+    });
+
+    function Jump() {
+        if (isJumping || isDucking || !gameActive) return;
+        isJumping = true;
+        let startBot = 110, vel = 25, grav = 1.2, currentBot = startBot;
+        let jumpInterval = setInterval(() => {
+            vel -= grav;
+            currentBot += vel;
+            if (currentBot <= startBot) {
+                currentBot = startBot;
+                clearInterval(jumpInterval);
+                isJumping = false;
+            }
+            player.style.bottom = currentBot + "px";
+        }, 20);
+    }
+
+    function StartGame() {
+        if (gameActive) return;
+        gameActive = true; score = 0; gameSpeed = 15;
+        document.getElementById("startBtn").disabled = true;
+        gameTimer = setInterval(update, 20);
+        spawnTimer = setInterval(spawnObstacle, 1100);
+    }
+
+    function update() {
+        score++;
+        document.getElementById("scoreBoard").innerHTML = "Score: " + score;
+        gameSpeed = 15 + Math.floor(score / 500);
+        runway.style.backgroundPositionX = -(score * gameSpeed) + "px";
+        
+        if (score === 1000) document.body.className = "night";
+        if (score === 3000) document.body.className = "day";
+        
+        moveObstacles();
+    }
+
+    function spawnObstacle() {
+        let obs = document.createElement("div");
+        obs.classList.add("obstacle");
+        let type = Math.random();
+        if (type < 0.7) {
+            obs.innerHTML = Math.random() > 0.5 ? '<div class="cone"></div>' : '<div class="rock"></div>';
+            obs.style.bottom = "115px";
+        } else {
+            obs.innerHTML = '<div class="bird"></div>';
+            obs.style.bottom = "240px";
+        }
+        obs.style.left = window.innerWidth + "px";
+        document.body.appendChild(obs);
+        obstacles.push(obs);
+    }
+
+    function moveObstacles() {
+        for (let i = 0; i < obstacles.length; i++) {
+            let obs = obstacles[i];
+            let x = parseInt(obs.style.left) - gameSpeed;
+            obs.style.left = x + "px";
+
+            let pRect = player.getBoundingClientRect();
+            let oRect = obs.getBoundingClientRect();
+
+            if (pRect.right - 80 > oRect.left && pRect.left + 80 < oRect.right && 
+                pRect.bottom - 20 > oRect.top && pRect.top + 20 < oRect.bottom) {
+                GameOver();
+            }
+            if (x < -100) { obs.remove(); obstacles.splice(i, 1); i--; }
+        }
+    }
+
+    function GameOver() {
+        gameActive = false;
+        clearInterval(gameTimer);
+        clearInterval(spawnTimer);
+        if (score > highScore) localStorage.setItem("tonyHighScore", score);
+        alert("GAME OVER! Score: " + score);
+        location.reload();
+      }
+</script>
+</body>
+</html>
