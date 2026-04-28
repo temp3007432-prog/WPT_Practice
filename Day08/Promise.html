@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      var promise = new Promise(check);
+      promise.then(success)
+      function check(resolve, reject) {
+        if (10 > 2) {
+          resolve("Pandejii");
+        } else {
+          reject();
+        }
+      }
+
+      function success(data) {
+        console.log(data);
+        console.log("Success");
+      }
+
+      function failure() {
+        console.log("Failure");
+      }
+    </script>
+  </body>
+</html>
