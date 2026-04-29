@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      var promise = new Promise(GetData);
+      promise.then(function (data) {
+        console.log(data);
+      });
+
+      function GetData(resolve, reject) {
+        var helper = new XMLHttpRequest();
+        helper.onreadystatechange = function () {
+          if (helper.readyState == 4 && helper.status == 200) {
+            var reply = JSON.parse(helper.responseText);
+            resolve(reply);
+          }
+        };
+
+        helper.open("GET", "https://dummyjson.com/users");
+        helper.send();
+      }
+    </script>
+  </body>
+</html>

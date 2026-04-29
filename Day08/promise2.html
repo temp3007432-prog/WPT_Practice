@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function getMePromise() {
+        return new Promise(function (resolve, reject) {
+          if (10 > 2) {
+            resolve("Pandejii");
+          } else {
+            reject("Wakde");
+          }
+        });
+      }
+
+      getMePromise().then(function (data) {
+        console.log("Success");
+        console.log("Data available after promise fullfillment is " + data);
+      });
+    </script>
+  </body>
+</html>
