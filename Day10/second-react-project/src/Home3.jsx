@@ -14,9 +14,17 @@ class Home extends Component {
     helper.open("GET", "https://dummyjson.com/users");
     helper.send();
   };
-//   componentDidMount() {
-//     this.GetData();
-//   }
+
+
+  //
+  remove = (id) => {
+    var copyOfEmp = [...this.state.emps];
+    var filterdAry = copyOfEmp.filter((emp)=>{return emp.id !=id})
+    this.setState({emps:filterdAry});
+  };
+  //   componentDidMount() {
+  //     this.GetData();
+  //   }
   render() {
     return (
       <>
@@ -44,7 +52,18 @@ class Home extends Component {
                   <td>{emp.username}</td>
                   <td>{emp.birthDate}</td>
                   <td>{emp.address.city}</td>
-                  <td><img src={emp.image} alt="" /></td>
+                  <td>
+                    <img src={emp.image} alt="" />
+                  </td>
+                  <td>
+                    <button
+                      onClick={() => {
+                        this.remove(emp.id);
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </td>
                 </tr>
               );
             })}
