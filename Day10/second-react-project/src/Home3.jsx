@@ -26,6 +26,11 @@ class Home extends Component {
               <th>Id</th>
               <th>First Name</th>
               <th>Last Name</th>
+              <th>Phone</th>
+              <th>Username</th>
+              <th>DOB</th>
+              <th>City</th>
+              <th>Image</th>
             </tr>
           </thead>
           <tbody>
@@ -35,6 +40,11 @@ class Home extends Component {
                   <td>{emp.id}</td>
                   <td>{emp.firstName}</td>
                   <td>{emp.lastName}</td>
+                  <td>{emp.phone}</td>
+                  <td>{emp.username}</td>
+                  <td>{emp.birthDate}</td>
+                  <td>{emp.address.city}</td>
+                  <td><img src={emp.image} alt="" /></td>
                 </tr>
               );
             })}
